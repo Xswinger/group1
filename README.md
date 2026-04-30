@@ -2,7 +2,7 @@
 
 | Участник | Зона ответственности |
 |----------|----------------------|
-|    | ClickHouse-кластер, DDL, данные |
+| Эрцеговац Данила | ClickHouse-кластер, DDL, данные |
 |   | Nginx, балансировка, health checks |
 |   | Prometheus + Grafana, дашборды |
 | Игорь Аллаяров | Keeper, fault injection, Makefile |
