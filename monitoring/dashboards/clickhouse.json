@@ -1,0 +1,55 @@
+{
+  "title": "ClickHouse Cluster Monitoring",
+  "panels": [
+    {
+      "title": "Rows Count by Table",
+      "type": "table",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "ClickHouse",
+          "query": "SELECT database, table, sum(rows) as total_rows FROM system.parts WHERE active GROUP BY database, table"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "title": "Queries per Second",
+      "type": "graph",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "rate(ClickHouseProfileEvents_Query[1m])"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "title": "Replication Lag",
+      "type": "table",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "ClickHouse",
+          "query": "SELECT database, table, is_leader, replication_lag FROM system.replicas"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+    },
+    {
+      "title": "Memory Usage",
+      "type": "graph",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": "Prometheus",
+          "expr": "ClickHouseMetrics_MemoryTracking"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+    }
+  ],
+  "refresh": "10s",
+  "time": {"from": "now-1h", "to": "now"}
+}
