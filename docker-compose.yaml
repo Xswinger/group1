@@ -1,0 +1,256 @@
+x-clickhouse-common: &clickhouse-common
+  image: clickhouse/clickhouse-server:23.8-alpine
+  ulimits:
+    nofile:
+      soft: 262144
+      hard: 262144
+  depends_on:
+    - keeper1
+    - keeper2
+    - keeper3
+  networks:
+    - clickhouse-net
+  healthcheck:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
+services:
+  keeper1:
+    image: clickhouse/clickhouse-keeper:23.8-alpine
+    hostname: keeper1
+    container_name: keeper1
+    volumes:
+      - ./config/keeper/keeper1.xml:/etc/clickhouse-keeper/keeper_config.xml
+      - keeper1-data:/var/lib/clickhouse-keeper
+    networks:
+      - clickhouse-net
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "9181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  keeper2:
+    image: clickhouse/clickhouse-keeper:23.8-alpine
+    hostname: keeper2
+    container_name: keeper2
+    volumes:
+      - ./config/keeper/keeper2.xml:/etc/clickhouse-keeper/keeper_config.xml
+      - keeper2-data:/var/lib/clickhouse-keeper
+    networks:
+      - clickhouse-net
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "9181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  keeper3:
+    image: clickhouse/clickhouse-keeper:23.8-alpine
+    hostname: keeper3
+    container_name: keeper3
+    volumes:
+      - ./config/keeper/keeper3.xml:/etc/clickhouse-keeper/keeper_config.xml
+      - keeper3-data:/var/lib/clickhouse-keeper
+    networks:
+      - clickhouse-net
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "9181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  clickhouse1:
+    <<: *clickhouse-common
+    hostname: clickhouse1
+    container_name: clickhouse1
+    environment:
+      CLICKHOUSE_SHARD: 1
+      CLICKHOUSE_REPLICA: 1
+    volumes:
+      - ./sql/01_create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql:ro
+      - ./config/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./config/clickhouse/macros/node1.xml:/etc/clickhouse-server/config.d/macros.xml
+      - clickhouse1-data:/var/lib/clickhouse
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+      - "9363:9363"
+    depends_on:
+      keeper1:
+        condition: service_healthy
+      keeper2:
+        condition: service_healthy
+      keeper3:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  clickhouse2:
+    <<: *clickhouse-common
+    hostname: clickhouse2
+    container_name: clickhouse2
+    environment:
+      CLICKHOUSE_SHARD: 1
+      CLICKHOUSE_REPLICA: 2
+    volumes:
+      - ./config/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./config/clickhouse/macros/node2.xml:/etc/clickhouse-server/config.d/macros.xml
+      - clickhouse2-data:/var/lib/clickhouse
+    ports:
+      - "8124:8123"
+      - "9002:9000"
+      - "9364:9363"
+    depends_on:
+      keeper1:
+        condition: service_healthy
+      keeper2:
+        condition: service_healthy
+      keeper3:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  clickhouse3:
+    <<: *clickhouse-common
+    hostname: clickhouse3
+    container_name: clickhouse3
+    environment:
+      CLICKHOUSE_SHARD: 2
+      CLICKHOUSE_REPLICA: 1
+    volumes:
+      - ./config/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./config/clickhouse/macros/node3.xml:/etc/clickhouse-server/config.d/macros.xml
+      - clickhouse3-data:/var/lib/clickhouse
+    ports:
+      - "8125:8123"
+      - "9003:9000"
+      - "9365:9363"
+    depends_on:
+      keeper1:
+        condition: service_healthy
+      keeper2:
+        condition: service_healthy
+      keeper3:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  clickhouse4:
+    <<: *clickhouse-common
+    hostname: clickhouse4
+    container_name: clickhouse4
+    environment:
+      CLICKHOUSE_SHARD: 2
+      CLICKHOUSE_REPLICA: 2
+    volumes:
+      - ./config/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+      - ./config/clickhouse/macros/node4.xml:/etc/clickhouse-server/config.d/macros.xml
+      - clickhouse4-data:/var/lib/clickhouse
+    ports:
+      - "8126:8123"
+      - "9004:9000"
+      - "9366:9363"
+    depends_on:
+      keeper1:
+        condition: service_healthy
+      keeper2:
+        condition: service_healthy
+      keeper3:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  nginx:
+    image: nginx:alpine
+    hostname: nginx
+    container_name: nginx
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    networks:
+      - clickhouse-net
+    depends_on:
+      - clickhouse1
+      - clickhouse2
+      - clickhouse3
+      - clickhouse4
+
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    container_name: prometheus
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    ports:
+      - "9090:9090"
+    networks:
+      - clickhouse-net
+
+  grafana:
+    image: grafana/grafana:latest
+    hostname: grafana
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: vertamedia-clickhouse-datasource
+    volumes:
+      - ./monitoring/provisioning:/etc/grafana/provisioning
+      - ./monitoring/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - clickhouse-net
+    depends_on:
+      - prometheus
+
+networks:
+  clickhouse-net:
+    driver: bridge
+
+volumes:
+  keeper1-data:
+  keeper2-data:
+  keeper3-data:
+  clickhouse1-data:
+  clickhouse2-data:
+  clickhouse3-data:
+  clickhouse4-data:
+  prometheus-data:
+  grafana-data:
