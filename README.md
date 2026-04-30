@@ -4,7 +4,7 @@
 |----------|----------------------|
 | Эрцеговац Данила | ClickHouse-кластер, DDL, данные |
 |   | Nginx, балансировка, health checks |
-|   | Prometheus + Grafana, дашборды |
+| Юльякшин Анатолий | Prometheus + Grafana, дашборды |
 | Игорь Аллаяров | Keeper, fault injection, Makefile |
 
 ## Часть №1
